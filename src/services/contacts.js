@@ -29,3 +29,22 @@ export const getContactById = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+//
+
+export const createContactService = async (contactData) => {
+  const contact = new Contact(contactData);
+  return await contact.save();
+};
+
+//
+
+export const updateContactService = async (contactId, updateData) => {
+  return await Contact.findByIdAndUpdate(contactId, updateData, { new: true });
+};
+
+//
+
+export const deleteContactService = async (contactId) => {
+  return await Contact.findByIdAndDelete(contactId);
+};
