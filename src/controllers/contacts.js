@@ -8,11 +8,42 @@ import createError from 'http-errors';
 
 export const getContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find();
+    const {
+      page = 1,
+      perPage = 10,
+      sortBy = 'name',
+      sortOrder = 'asc',
+    } = req.query;
+
+    const query = {};
+
+    if (req.query.type) {
+      query.contactType = req.query.type;
+    }
+
+    if (req.query.isFavourite !== undefined) {
+      query.isFavourite = req.query.isFavourite === 'true';
+    }
+
+    const totalItems = await Contact.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / perPage);
+    const contacts = await Contact.find(query)
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .skip((page - 1) * perPage)
+      .limit(parseInt(perPage));
+
     res.status(200).json({
       status: 200,
       message: 'Successfully found contacts!',
-      data: contacts,
+      data: {
+        data: contacts,
+        page: Number(page),
+        perPage: Number(perPage),
+        totalItems,
+        totalPages,
+        hasPreviousPage: page > 1,
+        hasNextPage: page < totalPages,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
