@@ -11,10 +11,14 @@ const contactSchema = new mongoose.Schema(
       enum: ['work', 'home', 'personal'],
       default: 'personal',
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    }, // Yeni alan
   },
   { timestamps: true },
 );
 
 const Contact = mongoose.model('Contact', contactSchema);
-
 export default Contact;

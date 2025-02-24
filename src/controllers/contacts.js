@@ -15,7 +15,7 @@ export const getContacts = async (req, res) => {
       sortOrder = 'asc',
     } = req.query;
 
-    const query = {};
+    const query = { userId: req.user.id }; // Kullanıcının sadece kendi kontaklarını görmesini sağla
 
     if (req.query.type) {
       query.contactType = req.query.type;
@@ -69,7 +69,17 @@ export const getContactById = async (req, res) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const newContact = await createContactService(req.body);
+    const { name, phoneNumber, email, isFavourite, contactType } = req.body;
+
+    const newContact = await createContactService({
+      name,
+      phoneNumber,
+      email,
+      isFavourite,
+      contactType,
+      userId: req.user.id, // Kullanıcının kimliğini eklemek için
+    });
+
     res.status(201).json({
       status: 201,
       message: 'Successfully created a contact!',
@@ -83,13 +93,23 @@ export const createContact = async (req, res, next) => {
 export const updateContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
+
+    const contact = await Contact.findOne({
+      _id: contactId,
+      userId: req.user.id,
+    });
+
+    if (!contact) {
+      return res
+        .status(404)
+        .json({ message: 'Contact not found or unauthorized' });
+    }
+
     const updatedContact = await updateContactService(contactId, req.body);
-    if (!updatedContact)
-      return res.status(404).json({ message: 'Contact not found' });
 
     res.status(200).json({
       status: 200,
-      message: 'Successfully patched a contact!',
+      message: 'Successfully updated the contact!',
       data: updatedContact,
     });
   } catch (error) {
@@ -100,9 +120,19 @@ export const updateContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const deletedContact = await deleteContactService(contactId);
-    if (!deletedContact)
-      return res.status(404).json({ message: 'Contact not found' });
+
+    const contact = await Contact.findOne({
+      _id: contactId,
+      userId: req.user.id,
+    });
+
+    if (!contact) {
+      return res
+        .status(404)
+        .json({ message: 'Contact not found or unauthorized' });
+    }
+
+    await deleteContactService(contactId);
 
     res.status(200).json({ message: 'Successfully deleted the contact!' });
   } catch (error) {

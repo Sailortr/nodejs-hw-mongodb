@@ -1,5 +1,5 @@
 import express from 'express';
-import ctrlWrapper from '../utils/ctrlWrapper.js';
+import authenticate from '../middlewares/authenticate.js'; // Kimlik doğrulama
 import {
   getContacts,
   getContactById,
@@ -16,15 +16,21 @@ import {
 
 const router = express.Router();
 
-router.get('/', ctrlWrapper(getContacts));
-router.get('/:contactId', isValidId, ctrlWrapper(getContactById));
-router.post('/', validateBody(createContactSchema), ctrlWrapper(createContact));
+router.get('/', authenticate, getContacts);
+router.get('/:contactId', authenticate, isValidId, getContactById);
+router.post(
+  '/',
+  authenticate,
+  validateBody(createContactSchema),
+  createContact,
+);
 router.patch(
   '/:contactId',
+  authenticate,
   isValidId,
   validateBody(updateContactSchema),
-  ctrlWrapper(updateContact),
+  updateContact,
 );
-router.delete('/:contactId', isValidId, ctrlWrapper(deleteContact));
+router.delete('/:contactId', authenticate, isValidId, deleteContact);
 
 export default router;
