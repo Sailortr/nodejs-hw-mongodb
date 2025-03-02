@@ -4,7 +4,7 @@ import createError from 'http-errors';
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(createError(401, 'Unauthorized'));
+    return next(createError(401, 'Unauthorized: Token is missing'));
   }
 
   const token = authHeader.split(' ')[1];
@@ -14,7 +14,8 @@ const authenticate = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    next(createError(401, 'Access token expired'));
+    console.log('JWT Error:', error.message); // Hata logu ekle
+    next(createError(401, 'Access token expired or invalid'));
   }
 };
 

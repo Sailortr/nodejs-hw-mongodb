@@ -140,18 +140,21 @@ export const deleteContact = async (req, res, next) => {
   }
 };
 
-// PUT request - Ödevde bulunmamakta fakat bu istek fonksiyonu oluşturdum ama router/contacts.js de kullanmadım !!!
 export const replaceContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const replacedContact = await Contact.findByIdAndUpdate(
-      contactId,
+
+    const replacedContact = await Contact.findOneAndReplace(
+      { _id: contactId, userId: req.user.id },
       req.body,
-      { new: true, overwrite: true },
+      { new: true },
     );
 
-    if (!replacedContact)
-      return res.status(404).json({ message: 'Contact not found' });
+    if (!replacedContact) {
+      return res
+        .status(404)
+        .json({ message: 'Contact not found or unauthorized' });
+    }
 
     res.status(200).json({
       status: 200,

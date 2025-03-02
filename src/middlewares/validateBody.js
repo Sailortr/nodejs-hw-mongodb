@@ -3,9 +3,10 @@ import createError from 'http-errors';
 
 const validateBody = (schema) => {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body);
+    const { error } = schema.validate(req.body, { abortEarly: false });
     if (error) {
-      next(createError(400, error.details[0].message));
+      const errorMessages = error.details.map((err) => err.message);
+      next(createError(400, errorMessages.join(', ')));
     } else {
       next();
     }

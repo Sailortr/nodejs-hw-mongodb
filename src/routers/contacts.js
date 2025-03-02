@@ -13,6 +13,7 @@ import {
   createContactSchema,
   updateContactSchema,
 } from '../validation/contactValidation.js';
+import { replaceContact } from '../controllers/contacts.js';
 
 const router = express.Router();
 
@@ -32,5 +33,13 @@ router.patch(
   updateContact,
 );
 router.delete('/:contactId', authenticate, isValidId, deleteContact);
+
+router.put(
+  '/:contactId',
+  authenticate,
+  isValidId,
+  validateBody(updateContactSchema),
+  replaceContact,
+);
 
 export default router;
