@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Session from '../models/Session.js';
 import createError from 'http-errors';
+import { sendResetEmail } from './email.js';
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -65,4 +66,31 @@ export const refreshTokenService = async (refreshToken) => {
 
 export const logoutUser = async (refreshToken) => {
   await Session.deleteOne({ refreshToken });
+};
+
+export const sendPasswordResetEmail = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user) throw createError(404, 'User not found!');
+
+  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+    expiresIn: '5m',
+  });
+
+  await sendResetEmail(email, token);
+};
+
+export const resetPassword = async (token, newPassword) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ email: decoded.email });
+    if (!user) throw createError(404, 'User not found!');
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    await Session.deleteMany({ userId: user._id });
+  } catch (error) {
+    throw createError(401, 'Token is expired or invalid.');
+  }
 };

@@ -5,6 +5,7 @@ import {
   deleteContactService,
 } from '../services/contacts.js';
 import createError from 'http-errors';
+import { uploadImage } from '../services/cloudinary.js';
 
 export const getContacts = async (req, res) => {
   try {
@@ -70,6 +71,13 @@ export const getContactById = async (req, res) => {
 export const createContact = async (req, res, next) => {
   try {
     const { name, phoneNumber, email, isFavourite, contactType } = req.body;
+    let photoUrl = '';
+
+    //Eğer resim dosyası varsa cloudinarye yükleme işlemi
+    if (req.file) {
+      const uploadResponse = await uploadImage(req.file.path);
+      photoUrl = uploadResponse.secure_url;
+    }
 
     const newContact = await createContactService({
       name,
@@ -77,7 +85,8 @@ export const createContact = async (req, res, next) => {
       email,
       isFavourite,
       contactType,
-      userId: req.user.id, // Kullanıcının kimliğini eklemek için
+      photo: photoUrl,
+      userId: req.user.id,
     });
 
     res.status(201).json({

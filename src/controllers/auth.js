@@ -4,17 +4,17 @@ import {
   refreshTokenService,
   logoutUser,
 } from '../services/auth.js';
+import { sendPasswordResetEmail } from '../services/auth.js';
+import { resetPassword } from '../services/auth.js';
 
 export const register = async (req, res, next) => {
   try {
     const user = await registerUser(req.body);
-    res
-      .status(201)
-      .json({
-        status: 201,
-        message: 'Successfully registered a user!',
-        data: user,
-      });
+    res.status(201).json({
+      status: 201,
+      message: 'Successfully registered a user!',
+      data: user,
+    });
   } catch (error) {
     next(error);
   }
@@ -28,13 +28,11 @@ export const login = async (req, res, next) => {
       secure: true,
       sameSite: 'Strict',
     });
-    res
-      .status(200)
-      .json({
-        status: 200,
-        message: 'Successfully logged in an user!',
-        data: { accessToken },
-      });
+    res.status(200).json({
+      status: 200,
+      message: 'Successfully logged in an user!',
+      data: { accessToken },
+    });
   } catch (error) {
     next(error);
   }
@@ -53,13 +51,11 @@ export const refreshToken = async (req, res, next) => {
       secure: true,
       sameSite: 'Strict',
     });
-    res
-      .status(200)
-      .json({
-        status: 200,
-        message: 'Successfully refreshed a session!',
-        data: { accessToken },
-      });
+    res.status(200).json({
+      status: 200,
+      message: 'Successfully refreshed a session!',
+      data: { accessToken },
+    });
   } catch (error) {
     next(error);
   }
@@ -73,6 +69,34 @@ export const logout = async (req, res, next) => {
     await logoutUser(refreshToken);
     res.clearCookie('refreshToken');
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendResetEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    await sendPasswordResetEmail(email);
+    res.status(200).json({
+      status: 200,
+      message: 'Reset password email has been successfully sent.',
+      data: {},
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPwd = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    await resetPassword(token, password);
+    res.status(200).json({
+      status: 200,
+      message: 'Password has been successfully reset.',
+      data: {},
+    });
   } catch (error) {
     next(error);
   }

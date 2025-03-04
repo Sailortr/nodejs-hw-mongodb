@@ -6,9 +6,16 @@ export const registerSchema = Joi.object({
   password: Joi.string().min(6).max(50).required(),
 });
 
-//
-
 export const loginSchema = Joi.object({
   email: Joi.string().email().required(),
+  password: Joi.string().min(6).max(50).required(),
+});
+
+export const emailSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+export const resetPwdSchema = Joi.object({
+  token: Joi.string().required(),
   password: Joi.string().min(6).max(50).required(),
 });
