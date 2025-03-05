@@ -3,11 +3,14 @@ import createError from 'http-errors';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
+  port: Number(process.env.SMTP_PORT),
   secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
@@ -23,8 +26,10 @@ export const sendResetEmail = async (email, token) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('📨 Email Sent Successfully:', info);
   } catch (error) {
-    throw createError(500, 'Failed to send the email, please try again later.');
+    console.error('🚨 SMTP Error:', error);
+    throw createError(500, `Failed to send email: ${error.message}`);
   }
 };
